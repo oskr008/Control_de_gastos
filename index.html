@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CC Tracker Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="ph ph-credit-card icon-large"></i>
+                <h2>CCTrack</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" id="navDashboard"><i class="ph ph-squares-four"></i> Dashboard</a>
+                <a href="#" class="nav-item"><i class="ph ph-list-dashes"></i> Transacciones</a>
+                <a href="#" class="nav-item" id="navTransferencias"><i class="ph ph-arrows-left-right"></i> Transferencias</a>
+                <a href="#" class="nav-item"><i class="ph ph-cards"></i> Tarjetas</a>
+                <a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Reportes</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item"><i class="ph ph-gear"></i> Ajustes</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="filters-container" style="display: flex; gap: 16px;">
+                    <div class="card-selector">
+                        <label for="cardSelect">Activa:</label>
+                        <select id="cardSelect">
+                            <option value="all">Todas las Tarjetas</option>
+                        </select>
+                    </div>
+                    <div class="card-selector">
+                        <label for="monthSelect">Mes:</label>
+                        <select id="monthSelect">
+                            <option value="all">Todos los Meses</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar">JR</div>
+                </div>
+            </header>
+
+            <div class="dashboard-content" id="dashboardView">
+                <!-- Summary Cards -->
+                <section class="summary-cards">
+                    <div class="card glass">
+                        <div class="card-icon"><i class="ph ph-money"></i></div>
+                        <div class="card-info">
+                            <h3>Total Consumido</h3>
+                            <p class="amount" id="totalSpent">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="card glass">
+                        <div class="card-icon accent-green"><i class="ph ph-wallet"></i></div>
+                        <div class="card-info">
+                            <h3>Límite Disponible</h3>
+                            <p class="amount" id="availableCredit">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="card glass">
+                        <div class="card-icon accent-purple"><i class="ph ph-calendar-check"></i></div>
+                        <div class="card-info">
+                            <h3>Próximo Vencimiento</h3>
+                            <p class="amount" id="nextDue">--</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-section">
+                    <div class="chart-container glass">
+                        <h3>Gastos por Categoría</h3>
+                        <div class="canvas-wrapper">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container glass">
+                        <h3>Evolución de Consumos</h3>
+                        <div class="canvas-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Historical Line Chart -->
+                <section class="history-section glass" style="margin-bottom: 24px; padding: 24px;">
+                    <div class="section-header" style="margin-bottom: 16px;">
+                        <h3 style="margin: 0; font-size: 1.1rem;">Histórico Mensual por Categoría</h3>
+                    </div>
+                    <div class="canvas-wrapper" style="height: 350px;">
+                        <canvas id="historyChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Transactions Table -->
+                <section class="transactions-section glass">
+                    <div class="section-header">
+                        <h3>Transacciones Recientes</h3>
+                        <button class="btn btn-primary" id="addTxBtn">
+                            <i class="ph ph-plus"></i> Nuevo Gasto
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="transactionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Categoría</th>
+                                    <th>Tarjeta</th>
+                                    <th>Cuotas</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TRANSFERS VIEW -->
+            <div class="dashboard-content" id="transfersView" style="display: none;">
+                <!-- Summary Cards -->
+                <section class="summary-cards">
+                    <div class="card glass">
+                        <div class="card-icon accent-purple"><i class="ph ph-arrow-up-right"></i></div>
+                        <div class="card-info">
+                            <h3>Total Enviado</h3>
+                            <p class="amount" id="totalTransferSent">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="card glass">
+                        <div class="card-icon accent-green"><i class="ph ph-arrow-down-left"></i></div>
+                        <div class="card-info">
+                            <h3>Total Recibido</h3>
+                            <p class="amount" id="totalTransferReceived">$0.00</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="charts-section" style="grid-template-columns: 1fr;">
+                    <div class="chart-container glass">
+                        <h3>Transferencias por Mes</h3>
+                        <div class="canvas-wrapper">
+                            <canvas id="transfersChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="transactions-section glass">
+                    <div class="section-header">
+                        <h3>Detalle por Persona</h3>
+                        <button class="btn btn-primary" id="addTransferBtn">
+                            <i class="ph ph-plus"></i> Nueva Transferencia
+                        </button>
+                    </div>
+                    <div class="table-responsive" id="transferGroupsContainer">
+                        <!-- Grouped by person generated by JS -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for new transaction -->
+    <div class="modal-overlay" id="txModal">
+        <div class="modal glass">
+            <div class="modal-header">
+                <h2>Registrar Gasto</h2>
+                <button class="close-btn" id="closeModalBtn"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="txForm" class="modal-form">
+                <div class="form-group">
+                    <label for="txDesc">Descripción</label>
+                    <input type="text" id="txDesc" required placeholder="Ej. Supermercado">
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="txAmount">Monto Total ($)</label>
+                        <input type="number" step="0.01" id="txAmount" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="txDate">Fecha</label>
+                        <input type="date" id="txDate" required>
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="txCategory">Categoría</label>
+                        <select id="txCategory" required>
+                            <option value="Supermercado">Supermercado</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Entretenimiento">Entretenimiento</option>
+                            <option value="Servicios">Servicios</option>
+                            <option value="Suscripciones">Suscripciones</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="txCard">Tarjeta</label>
+                        <select id="txCard" required>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="txInstallments">Cuotas (1 para pago contado)</label>
+                    <input type="number" id="txInstallments" value="1" min="1" max="36" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary w-100">Guardar Transacción</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for new transfer -->
+    <div class="modal-overlay" id="transferModal">
+        <div class="modal glass">
+            <div class="modal-header">
+                <h2>Registrar Transferencia</h2>
+                <button class="close-btn" id="closeTransferModalBtn"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="transferForm" class="modal-form">
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="tfType">Tipo</label>
+                        <select id="tfType" required>
+                            <option value="sent">Envío a (Salida)</option>
+                            <option value="received">Recibido de (Entrada)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tfDate">Fecha</label>
+                        <input type="date" id="tfDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="tfPerson">Persona / Contacto</label>
+                    <input type="text" id="tfPerson" required placeholder="Ej. Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label for="tfAmount">Monto ($)</label>
+                    <input type="number" step="0.01" id="tfAmount" required placeholder="0.00">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary w-100">Guardar Transferencia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
