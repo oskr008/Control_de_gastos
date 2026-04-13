@@ -10,23 +10,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Login Overlay -->
-    <div id="loginOverlay" class="login-overlay active">
-        <div class="login-card glass">
-            <h2 id="loginTitle">Bienvenido a CCTrack</h2>
-            <p id="loginSubtitle" style="color: var(--text-secondary); margin-bottom: 24px; text-align: center;">Ingresa tu PIN de acceso.</p>
-            <form id="loginForm" class="modal-form" style="width: 100%;">
-                <div class="form-group">
-                    <input type="password" id="pinInput" required placeholder="****" style="text-align: center; font-size: 1.5rem; letter-spacing: 12px; font-weight: bold; width: 100%;" maxlength="8">
-                </div>
-                <div id="loginError" style="color: var(--accent-red); font-size: 0.9rem; display: none; text-align: center; margin-bottom: 8px;">PIN incorrecto</div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary w-100" id="loginBtn">Acceder</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">

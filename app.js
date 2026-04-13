@@ -495,48 +495,5 @@ function updateTransfersView() {
     }
 }
 
-// Login logic
-function checkLogin() {
-    const loginOverlay = document.getElementById('loginOverlay');
-    const loginForm = document.getElementById('loginForm');
-    const pinInput = document.getElementById('pinInput');
-    const loginTitle = document.getElementById('loginTitle');
-    const loginSubtitle = document.getElementById('loginSubtitle');
-    const loginError = document.getElementById('loginError');
-
-    const savedPin = localStorage.getItem('cc_dashboard_pin');
-
-    if (!savedPin) {
-        loginTitle.textContent = "Crear PIN";
-        loginSubtitle.textContent = "Crea un PIN numérico para proteger tus datos.";
-        document.getElementById('loginBtn').textContent = "Guardar y Entrar";
-    }
-
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const value = pinInput.value.trim();
-        if (!value) return;
-
-        loginError.style.display = 'none';
-
-        if (!savedPin) {
-            // Set new PIN (using basic base64 for obfuscation, note: not actual encryption)
-            localStorage.setItem('cc_dashboard_pin', btoa(value)); 
-            loginOverlay.classList.remove('active');
-            init(); 
-        } else {
-            // Verify PIN
-            if (btoa(value) === savedPin) {
-                loginOverlay.classList.remove('active');
-                init(); 
-            } else {
-                loginError.style.display = 'block';
-                pinInput.value = '';
-                pinInput.focus();
-            }
-        }
-    });
-}
-
 // Boot
-document.addEventListener('DOMContentLoaded', checkLogin);
+document.addEventListener('DOMContentLoaded', init);
