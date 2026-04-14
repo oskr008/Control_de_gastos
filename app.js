@@ -586,25 +586,26 @@ function updateTransfersView() {
 }
 
 // Boot
-supabase.auth.onAuthStateChange(async (event, session) => {
-    const authC = document.getElementById('authContainer');
-    const appC = document.getElementById('appContainer');
-    
-    if (session) {
-        currentUser = session.user.id;
-        authC.style.display = 'none';
-        appC.style.display = 'flex';
-        document.getElementById('userAvatar').textContent = session.user.email.substring(0, 2).toUpperCase();
-        await initApp();
-    } else {
-        currentUser = null;
-        authC.style.display = 'flex';
-        appC.style.display = 'none';
-    }
-});
+const initAll = () => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        const authC = document.getElementById('authContainer');
+        const appC = document.getElementById('appContainer');
+        
+        if (session) {
+            currentUser = session.user.id;
+            authC.style.display = 'none';
+            appC.style.display = 'flex';
+            document.getElementById('userAvatar').textContent = session.user.email.substring(0, 2).toUpperCase();
+            await initApp();
+        } else {
+            currentUser = null;
+            authC.style.display = 'flex';
+            appC.style.display = 'none';
+        }
+    });
 
-document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
+    
     // Intenta recuperar sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (!session) {
@@ -612,4 +613,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('appContainer').style.display = 'none';
         }
     });
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+} else {
+    initAll();
+}
