@@ -7,10 +7,61 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-container">
+    <!-- Toast Notification -->
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <!-- Auth Container -->
+    <div class="auth-container" id="authContainer">
+        <div class="auth-box glass">
+            <div class="auth-header">
+                <i class="ph ph-credit-card icon-large"></i>
+                <h2>CCTrack</h2>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">Correo Electrónico</label>
+                    <input type="email" id="loginEmail" required placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="Tu contraseña">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                    <button type="button" class="btn w-100" id="showRegisterBtn" style="margin-top: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);">Crear Cuenta</button>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="regEmail">Correo Electrónico</label>
+                    <input type="email" id="regEmail" required placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Contraseña</label>
+                    <input type="password" id="regPassword" required placeholder="Crea una contraseña">
+                </div>
+                <div class="form-group">
+                    <label for="regPasswordConfirm">Confirmar Contraseña</label>
+                    <input type="password" id="regPasswordConfirm" required placeholder="Repite la contraseña">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+                    <button type="button" class="btn w-100" id="showLoginBtn" style="margin-top: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);">Ya tengo cuenta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app-container" id="appContainer" style="display: none;">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -26,6 +77,7 @@
             </nav>
             <div class="sidebar-footer">
                 <a href="#" class="nav-item"><i class="ph ph-gear"></i> Ajustes</a>
+                <a href="#" class="nav-item" id="logoutBtn" style="color: #ef4444;"><i class="ph ph-sign-out"></i> Cerrar Sesión</a>
             </div>
         </aside>
 
@@ -47,7 +99,7 @@
                     </div>
                 </div>
                 <div class="user-profile">
-                    <div class="avatar">JR</div>
+                    <div class="avatar" id="userAvatar">U</div>
                 </div>
             </header>
 

@@ -5,10 +5,17 @@ let state = {
         { id: 'card-2', name: 'Mastercard Black', limit: 3500, color: '#8b5cf6' }
     ],
     transactions: [],
-    selectedCardId: 'all', // 'all' or a specific card ID
+    selectedCardId: 'all',
     selectedMonth: 'all',
     transfers: []
 };
+
+let currentUser = null; // Supabase user ID
+
+// Supabase Init
+const supabaseUrl = 'https://tybfbjlejficwkydqtmk.supabase.co';
+const supabaseKey = 'sb_publishable_P6OT_CJNLtg6ysRhRQjRnQ_iptyAyXi';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // Colors for charts
 const categoryColors = {
@@ -20,47 +27,74 @@ const categoryColors = {
     'Otros': '#ef4444'
 };
 
-// Initialize App
-function init() {
-    loadData();
+// Toast Notifications
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = 'ph-info';
+    if (type === 'error') icon = 'ph-x-circle';
+    if (type === 'success') icon = 'ph-check-circle';
+    
+    toast.innerHTML = `<i class="ph ${icon}" style="font-size: 20px;"></i> <span>${message}</span>`;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 3000);
+}
+
+// Initialize App Data
+async function initApp() {
+    await loadData();
     populateCardSelectors();
     populateMonthSelector();
     updateDashboard();
-    setupEventListeners();
     setupCharts();
 }
 
-// Load from LocalStorage or mock data
-function loadData() {
-    const stored = localStorage.getItem('cc_dashboard_data');
-    if (stored) {
-        state = JSON.parse(stored);
+// Load from Supabase DB
+async function loadData() {
+    if (!currentUser) return;
+    const { data, error } = await supabase.from('user_data').select('app_state').eq('user_id', currentUser).single();
+    
+    if (data && data.app_state) {
+        state = data.app_state;
     } else {
-        // Mock some recent transactions if none exist
+        // Fallback for new user or empty data
         const today = new Date().toISOString().split('T')[0];
         let d = new Date();
         d.setDate(d.getDate() - 2);
-        const twoDaysAgo = d.toISOString().split('T')[0];
-
-        state.transactions = [
-            { id: Date.now().toString(), desc: 'Compra Jumbo', amount: 120.50, date: today, category: 'Supermercado', cardId: 'card-1', installments: 1 },
-            { id: (Date.now() - 1000).toString(), desc: 'Uber', amount: 15.00, date: today, category: 'Transporte', cardId: 'card-1', installments: 1 },
-            { id: (Date.now() - 2000).toString(), desc: 'Netflix', amount: 10.99, date: twoDaysAgo, category: 'Suscripciones', cardId: 'card-2', installments: 1 },
-            { id: (Date.now() - 3000).toString(), desc: 'Zapatillas', amount: 150.00, date: twoDaysAgo, category: 'Otros', cardId: 'card-2', installments: 3 }
-        ];
-
-        state.transfers = [
-            { id: 't1', type: 'sent', amount: 50.00, date: today, person: 'Juan Pérez' },
-            { id: 't2', type: 'received', amount: 300.00, date: twoDaysAgo, person: 'Maria Gomez' },
-            { id: 't3', type: 'sent', amount: 120.00, date: twoDaysAgo, person: 'Juan Pérez' }
-        ];
-        saveData();
+        
+        state = {
+            cards: [
+                { id: 'card-1', name: 'Visa Signature', limit: 5000, color: '#6366f1' },
+                { id: 'card-2', name: 'Mastercard Black', limit: 3500, color: '#8b5cf6' }
+            ],
+            transactions: [],
+            selectedCardId: 'all',
+            selectedMonth: 'all',
+            transfers: []
+        };
+        await saveData();
     }
     if (!state.transfers) state.transfers = [];
 }
 
-function saveData() {
-    localStorage.setItem('cc_dashboard_data', JSON.stringify(state));
+async function saveData() {
+    if (!currentUser) return;
+    const { error } = await supabase.from('user_data').upsert({
+        user_id: currentUser,
+        app_state: state
+    });
+    if (error) {
+        console.error("Error al guardar en Supabase:", error);
+        showToast("Error al guardar datos", "error");
+    }
 }
 
 // UI Population
@@ -330,6 +364,55 @@ function updateHistoryChart(txs) {
 
 // Event Listeners
 function setupEventListeners() {
+    // Auth UI Switching
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const showRegisterBtn = document.getElementById('showRegisterBtn');
+    const showLoginBtn = document.getElementById('showLoginBtn');
+    
+    if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => { loginForm.style.display = 'none'; registerForm.style.display = 'flex'; });
+    if (showLoginBtn) showLoginBtn.addEventListener('click', () => { registerForm.style.display = 'none'; loginForm.style.display = 'flex'; });
+
+    // Authentication Logic
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const pass = document.getElementById('loginPassword').value;
+        
+        showToast("Iniciando sesión...", "info");
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        
+        if (error) {
+            showToast("Correo o contraseña incorrectos", "error");
+        } else {
+            showToast("Sesión iniciada", "success");
+        }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('regEmail').value.trim();
+        const pass = document.getElementById('regPassword').value;
+        const pass2 = document.getElementById('regPasswordConfirm').value;
+        
+        if (pass !== pass2) return showToast("Las contraseñas no coinciden", "error");
+        
+        showToast("Creando cuenta...", "info");
+        const { error } = await supabase.auth.signUp({ email, password: pass });
+        
+        if (error) {
+            showToast("Error de registro: " + error.message, "error");
+        } else {
+            showToast("Cuenta creada con éxito", "success");
+        }
+    });
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await supabase.auth.signOut();
+    });
+
     // Navigation
     const navDashboard = document.getElementById('navDashboard');
     const navTransferencias = document.getElementById('navTransferencias');
@@ -367,7 +450,7 @@ function setupEventListeners() {
         if(e.target === modal) modal.classList.remove('active');
     });
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const newTx = {
             id: Date.now().toString(),
@@ -380,7 +463,7 @@ function setupEventListeners() {
         };
 
         state.transactions.push(newTx);
-        saveData();
+        await saveData();
         populateMonthSelector();
         updateDashboard();
         
@@ -389,15 +472,15 @@ function setupEventListeners() {
         modal.classList.remove('active');
     });
 
-    cardSelect.addEventListener('change', (e) => {
+    cardSelect.addEventListener('change', async (e) => {
         state.selectedCardId = e.target.value;
-        saveData();
+        await saveData();
         updateDashboard();
     });
 
-    monthSelect.addEventListener('change', (e) => {
+    monthSelect.addEventListener('change', async (e) => {
         state.selectedMonth = e.target.value;
-        saveData();
+        await saveData();
         updateDashboard();
     });
 
@@ -413,7 +496,7 @@ function setupEventListeners() {
         closeTransferModalBtn.addEventListener('click', () => transferModal.classList.remove('active'));
         transferModal.addEventListener('click', (e) => { if(e.target === transferModal) transferModal.classList.remove('active'); });
 
-        transferForm.addEventListener('submit', (e) => {
+        transferForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const newTf = {
                 id: Date.now().toString(),
@@ -424,7 +507,7 @@ function setupEventListeners() {
             };
             if(!state.transfers) state.transfers = [];
             state.transfers.push(newTf);
-            saveData();
+            await saveData();
             updateTransfersView();
             transferForm.reset();
             document.getElementById('tfDate').valueAsDate = new Date();
@@ -496,4 +579,30 @@ function updateTransfersView() {
 }
 
 // Boot
-document.addEventListener('DOMContentLoaded', init);
+supabase.auth.onAuthStateChange(async (event, session) => {
+    const authC = document.getElementById('authContainer');
+    const appC = document.getElementById('appContainer');
+    
+    if (session) {
+        currentUser = session.user.id;
+        authC.style.display = 'none';
+        appC.style.display = 'flex';
+        document.getElementById('userAvatar').textContent = session.user.email.substring(0, 2).toUpperCase();
+        await initApp();
+    } else {
+        currentUser = null;
+        authC.style.display = 'flex';
+        appC.style.display = 'none';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
+    // Intenta recuperar sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+        }
+    });
+});

@@ -381,6 +381,92 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 .w-100 { width: 100%; justify-content: center; margin-top: 16px; }
 
+/* Auth Container */
+.auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background: radial-gradient(circle at center, var(--bg-panel-solid) 0%, var(--bg-dark) 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 420px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.auth-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.auth-header h2 {
+    font-size: 2rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--bg-panel-solid);
+    border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--primary-color);
+    box-shadow: var(--shadow-soft);
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: 500;
+    min-width: 250px;
+    animation: slideInRight 0.3s ease forwards;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast.error { border-left-color: var(--accent-red); }
+.toast.success { border-left-color: var(--accent-green); }
+
+.toast.fade-out {
+    animation: fadeOutRight 0.3s ease forwards;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
     .charts-section { grid-template-columns: 1fr; }
