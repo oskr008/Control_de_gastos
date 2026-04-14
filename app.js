@@ -383,54 +383,10 @@ function setupEventListeners() {
     if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => { console.log("Form Switch Executed");  loginForm.style.display = 'none'; registerForm.style.display = 'flex'; });
     if (showLoginBtn) showLoginBtn.addEventListener('click', () => { registerForm.style.display = 'none'; loginForm.style.display = 'flex'; });
 
-    // Authentication Logic
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const pass = document.getElementById('loginPassword').value;
-        
-        showToast("Iniciando sesión...", "info");
-        try {
-            const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-            if (error) {
-                showToast("Fallo al iniciar: " + error.message, "error");
-            } else {
-                showToast("Sesión iniciada", "success");
-            }
-        } catch (err) {
-            showToast("Error de conexión: " + err.message, "error");
-        }
-    });
-
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('regEmail').value.trim();
-        const pass = document.getElementById('regPassword').value;
-        const pass2 = document.getElementById('regPasswordConfirm').value;
-        
-        if (pass !== pass2) return showToast("Las contraseñas no coinciden", "error");
-        
-        showToast("Creando cuenta...", "info");
-        const { data, error } = await supabase.auth.signUp({ email, password: pass });
-        
-        if (error) {
-            showToast("Error de registro: " + error.message, "error");
-        } else {
-            showToast("Cuenta creada con éxito. Si no entras automáticamente, inicia sesión.", "success");
-            // Automatically switch back to login form
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'flex';
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPassword').value = '';
-            // Limpiar form de registro
-            registerForm.reset();
-        }
-    });
-
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', async (e) => {
         e.preventDefault();
-        await supabase.auth.signOut();
+        if (supabase) await supabase.auth.signOut();
     });
 
     // Navigation
@@ -640,3 +596,52 @@ if (document.readyState === 'loading') {
 } else {
     initAll();
 }
+
+// Global Auth Handlers to prevent missing listeners
+window.handleLogin = async (e) => {
+    e.preventDefault();
+    if (!supabase) return showToast("Fallo de conexión base de datos", "error");
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    
+    showToast("Iniciando sesión...", "info");
+    try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        if (error) {
+            showToast("Fallo al iniciar: " + error.message, "error");
+        } else {
+            showToast("Sesión iniciada", "success");
+        }
+    } catch (err) {
+        showToast("Error de conexión: " + err.message, "error");
+    }
+};
+
+window.handleRegister = async (e) => {
+    e.preventDefault();
+    if (!supabase) return showToast("Fallo de conexión base de datos", "error");
+    const email = document.getElementById('regEmail').value.trim();
+    const pass = document.getElementById('regPassword').value;
+    const pass2 = document.getElementById('regPasswordConfirm').value;
+    
+    if (pass !== pass2) return showToast("Las contraseñas no coinciden", "error");
+    
+    showToast("Creando cuenta...", "info");
+    try {
+        const { data, error } = await supabase.auth.signUp({ email, password: pass });
+        if (error) {
+            showToast("Error de registro: " + error.message, "error");
+        } else {
+            showToast("Cuenta creada con éxito. Si no entras automáticamente, inicia sesión.", "success");
+            const registerForm = document.getElementById('registerForm');
+            const loginForm = document.getElementById('loginForm');
+            if(registerForm) registerForm.style.display = 'none';
+            if(loginForm) loginForm.style.display = 'flex';
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = '';
+            if(registerForm) registerForm.reset();
+        }
+    } catch(err) {
+        showToast("Error de conexión: " + err.message, "error");
+    }
+};
