@@ -370,7 +370,7 @@ function setupEventListeners() {
     const showRegisterBtn = document.getElementById('showRegisterBtn');
     const showLoginBtn = document.getElementById('showLoginBtn');
     
-    if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => { loginForm.style.display = 'none'; registerForm.style.display = 'flex'; });
+    if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => { console.log("Form Switch Executed");  loginForm.style.display = 'none'; registerForm.style.display = 'flex'; });
     if (showLoginBtn) showLoginBtn.addEventListener('click', () => { registerForm.style.display = 'none'; loginForm.style.display = 'flex'; });
 
     // Authentication Logic
@@ -398,12 +398,19 @@ function setupEventListeners() {
         if (pass !== pass2) return showToast("Las contraseñas no coinciden", "error");
         
         showToast("Creando cuenta...", "info");
-        const { error } = await supabase.auth.signUp({ email, password: pass });
+        const { data, error } = await supabase.auth.signUp({ email, password: pass });
         
         if (error) {
             showToast("Error de registro: " + error.message, "error");
         } else {
-            showToast("Cuenta creada con éxito", "success");
+            showToast("Cuenta creada con éxito. Si no entras automáticamente, inicia sesión.", "success");
+            // Automatically switch back to login form
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'flex';
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = '';
+            // Limpiar form de registro
+            registerForm.reset();
         }
     });
 
