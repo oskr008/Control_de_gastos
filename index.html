@@ -23,7 +23,7 @@
             </div>
             
             <!-- Login Form -->
-            <form id="loginForm" class="auth-form" onsubmit="window.handleLogin(event)">
+            <form id="loginForm" class="auth-form" onsubmit="event.preventDefault(); window.handleLogin(event); return false;">
                 <div class="form-group">
                     <label for="loginEmail">Correo Electrónico</label>
                     <input type="email" id="loginEmail" required placeholder="correo@ejemplo.com">
@@ -39,7 +39,7 @@
             </form>
 
             <!-- Register Form -->
-            <form id="registerForm" class="auth-form" style="display: none;" onsubmit="window.handleRegister(event)">
+            <form id="registerForm" class="auth-form" style="display: none;" onsubmit="event.preventDefault(); window.handleRegister(event); return false;">
                 <div class="form-group">
                     <label for="regEmail">Correo Electrónico</label>
                     <input type="email" id="regEmail" required placeholder="correo@ejemplo.com">

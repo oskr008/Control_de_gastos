@@ -1,0 +1,10 @@
+<form id="f" onsubmit="window.fail(event)">
+  <input type="text">
+  <button type="submit">Go</button>
+</form>
+<script>
+window.fail = (e) => {
+  e.preventDefault();
+  throw new Error("crash!");
+};
+</script>
