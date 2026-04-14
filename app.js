@@ -12,10 +12,20 @@ let state = {
 
 let currentUser = null; // Supabase user ID
 
-// Supabase Init
-const supabaseUrl = 'https://tybfbjlejficwkydqtmk.supabase.co';
-const supabaseKey = 'sb_publishable_P6OT_CJNLtg6ysRhRQjRnQ_iptyAyXi';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+let supabase = null;
+try {
+    const supabaseUrl = 'https://tybfbjlejficwkydqtmk.supabase.co';
+    const supabaseKey = 'sb_publishable_P6OT_CJNLtg6ysRhRQjRnQ_iptyAyXi';
+    if (window.supabase) {
+        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    } else {
+        console.error("SUPABASE NO ESTA DEFINIDO GLOBALMENTE");
+    }
+} catch (e) {
+    console.error("Error inicializando Supabase:", e);
+}
+
+
 
 // Colors for charts
 const categoryColors = {
@@ -587,32 +597,39 @@ function updateTransfersView() {
 
 // Boot
 const initAll = () => {
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        const authC = document.getElementById('authContainer');
-        const appC = document.getElementById('appContainer');
-        
-        if (session) {
-            currentUser = session.user.id;
-            authC.style.display = 'none';
-            appC.style.display = 'flex';
-            document.getElementById('userAvatar').textContent = session.user.email.substring(0, 2).toUpperCase();
-            await initApp();
-        } else {
-            currentUser = null;
-            authC.style.display = 'flex';
-            appC.style.display = 'none';
-        }
-    });
+    if (supabase) {
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            const authC = document.getElementById('authContainer');
+            const appC = document.getElementById('appContainer');
+            
+            if (session) {
+                currentUser = session.user.id;
+                authC.style.display = 'none';
+                appC.style.display = 'flex';
+                document.getElementById('userAvatar').textContent = session.user.email.substring(0, 2).toUpperCase();
+                await initApp();
+            } else {
+                currentUser = null;
+                authC.style.display = 'flex';
+                appC.style.display = 'none';
+            }
+        });
+    }
 
     setupEventListeners();
     
     // Intenta recuperar sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) {
-            document.getElementById('authContainer').style.display = 'flex';
-            document.getElementById('appContainer').style.display = 'none';
-        }
-    });
+    if (supabase) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                document.getElementById('authContainer').style.display = 'flex';
+                document.getElementById('appContainer').style.display = 'none';
+            }
+        });
+    } else {
+        document.getElementById('authContainer').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
+    }
 };
 
 if (document.readyState === 'loading') {
