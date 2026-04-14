@@ -390,12 +390,15 @@ function setupEventListeners() {
         const pass = document.getElementById('loginPassword').value;
         
         showToast("Iniciando sesión...", "info");
-        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-        
-        if (error) {
-            showToast("Correo o contraseña incorrectos", "error");
-        } else {
-            showToast("Sesión iniciada", "success");
+        try {
+            const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+            if (error) {
+                showToast("Fallo al iniciar: " + error.message, "error");
+            } else {
+                showToast("Sesión iniciada", "success");
+            }
+        } catch (err) {
+            showToast("Error de conexión: " + err.message, "error");
         }
     });
 
